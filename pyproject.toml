@@ -1,0 +1,35 @@
+[project]
+name = "jaximal"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Arvin Kushwaha", email = "arvin.singh.kushwaha@gmail.com" }
+]
+dependencies = [
+    "safetensors>=0.4.3",
+    "jaxtyping>=0.2.29",
+    "jax>=0.4.28",
+    "optax>=0.2.2",
+    "jaxlib>=0.4.28",
+]
+readme = "README.md"
+requires-python = ">= 3.12"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.2.1",
+]
+excluded-dependencies = [
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jaximal"]
