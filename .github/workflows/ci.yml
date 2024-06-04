@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     
     steps:
       - uses: actions/checkout@v4
@@ -15,7 +15,6 @@ jobs:
         uses: eifinger/setup-rye@v3
         with:
           version: 'latest'
-          enable-cache: false
 
       - name: Test
         run: rye test
