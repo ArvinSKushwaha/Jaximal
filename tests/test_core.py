@@ -8,7 +8,7 @@ import optax
 from jax import numpy as np
 from jaximal.core import Jaximal, Static, dedictify, dictify
 from jaximal.io import load_file, save_file
-from jaximal.typing import Array, Float, PRNGKeyArray, Scalar
+from jaxtyping import Array, Float, PRNGKeyArray, Scalar
 
 
 def test_core(tmp_path: str):

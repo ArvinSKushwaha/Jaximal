@@ -1,7 +1,7 @@
 [project]
 name = "jaximal"
 version = "0.1.0"
-description = "Add your description here"
+description = "A JAX-based PyTree manipulation library "
 authors = [
     { name = "Arvin Kushwaha", email = "arvin.singh.kushwaha@gmail.com" }
 ]
@@ -46,7 +46,7 @@ relative-imports-order = "closest-to-furthest"
 quote-style = "single"
 docstring-code-format = true
 
-[tool.pyright]
+[tool.basedpyright]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
 reportUnknownParameterType = false
