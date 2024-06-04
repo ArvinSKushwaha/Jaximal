@@ -11,6 +11,7 @@
 absl-py==2.1.0
     # via chex
     # via optax
+basedpyright==1.12.4
 chex==0.1.86
     # via optax
 iniconfig==2.0.0
@@ -28,6 +29,8 @@ jaxtyping==0.2.29
 ml-dtypes==0.4.0
     # via jax
     # via jaxlib
+nodejs-wheel-binaries==20.14.0
+    # via basedpyright
 numpy==1.26.4
     # via chex
     # via jax

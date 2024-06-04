@@ -1,20 +1,22 @@
-import jax
 import typing
 
 from dataclasses import make_dataclass
-from .typing import Array, AbstractArray
+from json import dumps, loads
 from typing import (
     Annotated,
     Any,
     Mapping,
+    Self,
     Sequence,
     dataclass_transform,
     get_origin,
 )
-from json import dumps, loads
 
+import jax
 
-type Static[T] = Annotated[T, "jaximal::meta"]
+from .typing import AbstractArray, Array
+
+type Static[T] = Annotated[T, 'jaximal::meta']
 
 
 @dataclass_transform(eq_default=True, frozen_default=True)
@@ -39,8 +41,9 @@ class Jaximal:
 
         jax.tree_util.register_dataclass(cls, data_fields, meta_fields)
 
-        def cls_eq(self, other: object) -> bool:
-            if type(other) != type(self): return False
+        def cls_eq(self: Self, other: object) -> bool:
+            if type(other) != type(self):
+                return False
 
             equal = True
             for meta in meta_fields:
@@ -50,7 +53,9 @@ class Jaximal:
                     return False
 
             for data in data_fields:
-                if (ann := cls.__annotations__[data]) == Array or issubclass(ann, AbstractArray):
+                if (ann := cls.__annotations__[data]) == Array or issubclass(
+                    ann, AbstractArray
+                ):
                     equal &= (getattr(self, data) == getattr(other, data)).all()
                 else:
                     equal &= getattr(self, data) == getattr(other, data)
@@ -65,7 +70,7 @@ class Jaximal:
 
 def dictify(
     x: Any,
-    prefix: str = "",
+    prefix: str = '',
     typ: type | None = None,
 ) -> tuple[dict[str, Array], dict[str, str]]:
     typ = type(x) if typ is None else typ
@@ -74,15 +79,15 @@ def dictify(
     meta: dict[str, str] = {}
 
     if get_origin(typ) == Static:
-        meta |= {prefix.removesuffix("::"): dumps(x)}
+        meta |= {prefix.removesuffix('::'): dumps(x)}
 
     elif isinstance(x, Array):
-        data |= {prefix.removesuffix("::"): x}
+        data |= {prefix.removesuffix('::'): x}
 
     elif issubclass(typ, Jaximal):
         for child_key, child_type in x.__annotations__.items():
             child_data, child_meta = dictify(
-                getattr(x, child_key), prefix + child_key + "::", typ=child_type
+                getattr(x, child_key), prefix + child_key + '::', typ=child_type
             )
 
             data |= child_data
@@ -90,21 +95,21 @@ def dictify(
 
     elif isinstance(x, Sequence):
         for child_idx, child_elem in enumerate(x):
-            child_data, child_meta = dictify(child_elem, prefix + str(child_idx) + "::")
+            child_data, child_meta = dictify(child_elem, prefix + str(child_idx) + '::')
 
             data |= child_data
             meta |= child_meta
 
     elif isinstance(x, Mapping):
         for child_key, child_elem in x.items():
-            child_data, child_meta = dictify(child_elem, prefix + str(child_key) + "::")
+            child_data, child_meta = dictify(child_elem, prefix + str(child_key) + '::')
 
             data |= child_data
             meta |= child_meta
 
     else:
         raise TypeError(
-            f"Unexpected type {typ} and prefix {prefix} recieved by `dictify`."
+            f'Unexpected type {typ} and prefix {prefix} recieved by `dictify`.'
         )
 
     return data, meta
@@ -114,23 +119,23 @@ def dedictify[T](
     typ: type[T],
     data: dict[str, Array],
     meta: dict[str, str],
-    prefix: str = "",
+    prefix: str = '',
 ) -> T:
     base_typ = get_origin(typ)
     if base_typ is None:
         base_typ = typ
 
     if get_origin(typ) == Static:
-        return loads(meta[prefix.removesuffix("::")])
+        return loads(meta[prefix.removesuffix('::')])
 
     elif typ == Array or issubclass(base_typ, AbstractArray):
-        return data[prefix.removesuffix("::")]  # type: ignore
+        return data[prefix.removesuffix('::')]  # type: ignore
 
     elif issubclass(base_typ, Jaximal):
         children = {}
         for child_key, child_type in typ.__annotations__.items():
             children[child_key] = dedictify(
-                child_type, data, meta, prefix + child_key + "::"
+                child_type, data, meta, prefix + child_key + '::'
             )
 
         return typ(**children)
@@ -141,7 +146,7 @@ def dedictify[T](
 
         child_idx = 0
         while True:
-            child_prefix = prefix + str(child_idx) + "::"
+            child_prefix = prefix + str(child_idx) + '::'
             try:
                 next(filter(lambda x: x.startswith(child_prefix), data))
                 next(filter(lambda x: x.startswith(child_prefix), meta))
@@ -158,8 +163,8 @@ def dedictify[T](
 
         for keys in filter(lambda x: x.startswith(prefix), data):
             keys = keys[len(prefix) :]
-            child_key = key_type(keys.split("::", 1)[0])
-            child_prefix = prefix + str(child_key) + "::"
+            child_key = key_type(keys.split('::', 1)[0])
+            child_prefix = prefix + str(child_key) + '::'
 
             if child_key in children:
                 continue
@@ -169,8 +174,8 @@ def dedictify[T](
         return children  # type: ignore
 
     raise TypeError(
-        f"Unexpected type {typ} and prefix {prefix} recieved by `dedictify`."
+        f'Unexpected type {typ} and prefix {prefix} recieved by `dedictify`.'
     )
 
 
-__all__ = ["Jaximal", "Static", "dictify"]
+__all__ = ['Jaximal', 'Static', 'dictify']

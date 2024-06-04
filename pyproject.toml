@@ -24,6 +24,7 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = [
     "pytest>=8.2.1",
+    "basedpyright>=1.12.4",
 ]
 excluded-dependencies = [
 ]
@@ -33,3 +34,22 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/jaximal"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint.isort]
+lines-between-types = 1
+relative-imports-order = "closest-to-furthest"
+
+[tool.ruff.format]
+quote-style = "single"
+docstring-code-format = true
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false

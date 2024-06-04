@@ -1,36 +1,38 @@
-import jax
-import optax
 import os.path
 
-from jax import numpy as np
+from typing import cast
 
-from jaximal.core import Static, Jaximal, dedictify, dictify
-from jaximal.io import save_file, load_file
-from jaximal.typing import Float, Array, PRNGKeyArray, Scalar
+import jax
+import optax
+
+from jax import numpy as np
+from jaximal.core import Jaximal, Static, dedictify, dictify
+from jaximal.io import load_file, save_file
+from jaximal.typing import Array, Float, PRNGKeyArray, Scalar
 
 
 def test_core(tmp_path: str):
-
     class Linear(Jaximal):
         in_dim: Static[int]
         out_dim: Static[int]
 
-        weight: Float[Array, "{self.out_dim} {self.in_dim}"]
-        bias: Float[Array, "{self.out_dim}"]
+        weight: Float[Array, '{self.out_dim} {self.in_dim}']
+        bias: Float[Array, '{self.out_dim}']
 
         @staticmethod
-        def init_state(in_dim: int, out_dim: int,
-                       key: PRNGKeyArray) -> "Linear":
+        def init_state(in_dim: int, out_dim: int, key: PRNGKeyArray) -> 'Linear':
             w_key, b_key = jax.random.split(key)
-            weight = (jax.random.normal(w_key, shape=(out_dim, in_dim)) /
-                      (out_dim * in_dim)**0.5)
-            bias = jax.random.normal(b_key, shape=(out_dim, )) / out_dim**0.5
+            weight = (
+                jax.random.normal(w_key, shape=(out_dim, in_dim))
+                / (out_dim * in_dim) ** 0.5
+            )
+            bias = jax.random.normal(b_key, shape=(out_dim,)) / out_dim**0.5
             return Linear(in_dim, out_dim, weight, bias)
 
         def forward(
             self,
-            x: Float[Array, "{self.in_dim}"],
-        ) -> Float[Array, "{self.out_dim}"]:
+            x: Float[Array, '{self.in_dim}'],
+        ) -> Float[Array, '{self.out_dim}']:
             return self.weight @ x + self.bias
 
     class MLP(Jaximal):
@@ -41,8 +43,9 @@ def test_core(tmp_path: str):
         modules: list[Linear]
 
         @staticmethod
-        def init_state(in_dim: int, out_dim: int, hidden_dims: list[int],
-                       key: PRNGKeyArray) -> "MLP":
+        def init_state(
+            in_dim: int, out_dim: int, hidden_dims: list[int], key: PRNGKeyArray
+        ) -> 'MLP':
             shapes = [in_dim, *hidden_dims, out_dim]
             keys = jax.random.split(key, len(shapes) - 1)
 
@@ -54,8 +57,8 @@ def test_core(tmp_path: str):
 
         def forward(
             self,
-            x: Float[Array, "{self.in_dim}"],
-        ) -> Float[Array, "{self.out_dim}"]:
+            x: Float[Array, '{self.in_dim}'],
+        ) -> Float[Array, '{self.out_dim}']:
             tmp = x
             for i, module in enumerate(self.modules):
                 tmp = module.forward(tmp)
@@ -74,14 +77,16 @@ def test_core(tmp_path: str):
 
     mlp_key, key = jax.random.split(key)
 
-    optimizer = optax.chain(optax.adam(1e-1),
-                            optax.contrib.reduce_on_plateau())
+    optimizer = optax.chain(optax.adam(1e-1), optax.contrib.reduce_on_plateau())
 
     mlp = MLP.init_state(3, 4, [16, 16], mlp_key)
-    opt_state = optimizer.init(mlp)  # type: ignore
+    opt_state: optax.OptState = optimizer.init(cast(optax.OptState, mlp))
 
-    def loss(mlp: MLP, x_data: Float[Array, "batch {mlp.in_dim}"],
-             y_data: Float[Array, "batch {mlp.out_dim}"]) -> Float[Scalar, ""]:
+    def loss(
+        mlp: MLP,
+        x_data: Float[Array, 'batch {mlp.in_dim}'],
+        y_data: Float[Array, 'batch {mlp.out_dim}'],
+    ) -> Float[Scalar, '']:
         return optax.l2_loss(jax.vmap(mlp.forward)(x_data), y_data).mean()
 
     loss_grad = jax.jit(jax.value_and_grad(loss))
@@ -96,23 +101,24 @@ def test_core(tmp_path: str):
             grads,
             opt_state,
             mlp,  # type: ignore
-            value=cost)
+            value=cost,
+        )
 
         mlp: MLP = optax.apply_updates(mlp, updates)  # type: ignore
 
-        jax.debug.print("{} {}", i, cost)
+        jax.debug.print('{} {}', i, cost)
 
         return mlp, opt_state
 
     mlp, opt_state = jax.lax.fori_loop(0, 500, update, (mlp, opt_state))
-    save_file(os.path.join(tmp_path, "test_mlp.safetensors"), *dictify(mlp))
+    save_file(os.path.join(tmp_path, 'test_mlp.safetensors'), *dictify(mlp))
 
     mlp_restored = dedictify(
         MLP,
-        *load_file(os.path.join(tmp_path, "test_mlp.safetensors")),
+        *load_file(os.path.join(tmp_path, 'test_mlp.safetensors')),
     )
 
     assert mlp == mlp_restored
     assert np.allclose(
-        jax.vmap(mlp.forward)(x_data),
-        jax.vmap(mlp_restored.forward)(x_data))
+        jax.vmap(mlp.forward)(x_data), jax.vmap(mlp_restored.forward)(x_data)
+    )
