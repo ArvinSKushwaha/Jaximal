@@ -21,4 +21,4 @@ jobs:
         run: rye test
 
       - name: Type-Check
-        run: basedpyright -p . . 
+        run: rye run basedpyright -p . . 
