@@ -1,6 +1,6 @@
 [project]
 name = "jaximal"
-version = "0.1.0"
+version = "0.1.1"
 description = "A JAX-based PyTree manipulation library "
 authors = [
     { name = "Arvin Kushwaha", email = "arvin.singh.kushwaha@gmail.com" }
