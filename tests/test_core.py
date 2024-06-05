@@ -80,7 +80,7 @@ def test_core(tmp_path: str):
     optimizer = optax.chain(optax.adam(1e-1), optax.contrib.reduce_on_plateau())
 
     mlp = MLP.init_state(3, 4, [16, 16], mlp_key)
-    opt_state: optax.OptState = optimizer.init(cast(optax.OptState, mlp))
+    opt_state: optax.OptState = optimizer.init(cast(optax.Params, mlp))
 
     def loss(
         mlp: MLP,
@@ -104,7 +104,7 @@ def test_core(tmp_path: str):
             value=cost,
         )
 
-        mlp: MLP = optax.apply_updates(mlp, updates)  # type: ignore
+        mlp = cast(MLP, optax.apply_updates(cast(optax.Params, mlp), updates))
 
         jax.debug.print('{} {}', i, cost)
 
