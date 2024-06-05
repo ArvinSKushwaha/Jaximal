@@ -1,11 +1,13 @@
 import typing
 
 from dataclasses import make_dataclass
+from itertools import chain
 from json import dumps, loads
 from typing import (
     Annotated,
     Any,
     Callable,
+    Iterable,
     Mapping,
     Self,
     Sequence,
@@ -230,8 +232,12 @@ def dedictify[T](
         while True:
             child_prefix = prefix + str(child_idx) + '::'
             try:
-                next(filter(lambda x: x.startswith(child_prefix), data))
-                next(filter(lambda x: x.startswith(child_prefix), metadata))
+                next(
+                    filter(
+                        lambda x: x.startswith(child_prefix),
+                        cast(Iterable[str], chain(data.keys(), metadata.keys())),
+                    )
+                )
             except StopIteration:
                 break
             children.append(dedictify(child_type, data, metadata, child_prefix))
