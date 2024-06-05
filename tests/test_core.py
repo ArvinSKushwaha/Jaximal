@@ -122,3 +122,7 @@ def test_core(tmp_path: str):
     assert np.allclose(
         jax.vmap(mlp.forward)(x_data), jax.vmap(mlp_restored.forward)(x_data)
     )
+
+
+if __name__ == '__main__':
+    test_core('.')
