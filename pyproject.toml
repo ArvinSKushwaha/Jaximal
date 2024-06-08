@@ -9,7 +9,6 @@ dependencies = [
     "safetensors>=0.4.3",
     "jaxtyping>=0.2.29",
     "jax>=0.4.28",
-    "optax>=0.2.2",
     "jaxlib>=0.4.28",
 ]
 readme = "README.md"
@@ -22,7 +21,7 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = ["pytest>=8.2.1", "basedpyright>=1.12.4"]
+dev-dependencies = ["pytest>=8.2.1", "basedpyright>=1.12.4", "optax>=0.2.2"]
 excluded-dependencies = []
 
 [tool.rye.scripts]
