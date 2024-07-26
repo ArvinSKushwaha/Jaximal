@@ -139,13 +139,9 @@ class Sequential(JaximalModule):
 
         return init
 
-    def __call__(self, data: Any, *args: dict[str, Any]) -> Any:
-        assert len(args) == len(self.modules), (
-            'Expected `self.modules` and `args` to have the same length '
-            f'but got {len(self.modules)} and {len(args)}, respectively.'
-        )
-        for kwargs, modules in zip(args, self.modules):
-            data = modules(data, **kwargs)
+    def __call__(self, data: Any) -> Any:
+        for modules in self.modules:
+            data = modules(data)
 
         return data
 
