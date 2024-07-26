@@ -74,6 +74,12 @@ class JaximalModule(Jaximal, ABC):
     @abstractmethod
     def __call__(self, data: PyTree) -> PyTree: ...
 
+    @classmethod
+    def partial_init(
+        cls, *args: Any, **kwargs: Any
+    ) -> Callable[[PRNGKeyArray], 'JaximalModule']:
+        return lambda key: cls.init_state(key, *args, **kwargs)
+
 
 class Activation(JaximalModule):
     func: Static[Callable[[Array], Array]]
