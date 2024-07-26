@@ -5,7 +5,7 @@ from typing import Any, Callable, Self
 import jax
 
 from jax import numpy as np
-from jaxtyping import Array, Float, PRNGKeyArray, PyTree
+from jaxtyping import Array, Float, PRNGKeyArray
 
 from jaximal.core import Jaximal, Static
 
@@ -18,6 +18,9 @@ class WeightInitialization(Enum):
     GlorotNormal = auto()
     HeUniform = auto()
     HeNormal = auto()
+
+    XavierUniform = GlorotUniform
+    XavierNormal = GlorotNormal
 
     def init(
         self,
@@ -66,7 +69,7 @@ class WeightInitialization(Enum):
                 return jax.random.normal(key, shape, dtype=dtype) * scaling
 
 
-class JaximalModule(Jaximal, ABC):
+class JaximalModule(ABC, Jaximal):
     @classmethod
     @abstractmethod
     def init_state(
@@ -74,7 +77,7 @@ class JaximalModule(Jaximal, ABC):
     ) -> Callable[[PRNGKeyArray], Self]: ...
 
     @abstractmethod
-    def __call__(self, data: PyTree) -> PyTree: ...
+    def __call__(self, data: Any) -> Any: ...
 
 
 class Activation(JaximalModule):
@@ -86,7 +89,7 @@ class Activation(JaximalModule):
     ) -> Callable[[PRNGKeyArray], Self]:
         return lambda key: cls(func)
 
-    def __call__(self, data: PyTree) -> PyTree:
+    def __call__(self, data: Any) -> Any:
         return jax.tree.map(self.func, data)
 
 
@@ -107,6 +110,7 @@ class Linear(JaximalModule):
     ) -> Callable[[PRNGKeyArray], Self]:
         def init(key: PRNGKeyArray) -> Self:
             w_key, b_key = jax.random.split(key)
+
             weights = weight_initialization.init(
                 w_key, (in_dim, out_dim), in_dim, out_dim
             )
@@ -116,7 +120,7 @@ class Linear(JaximalModule):
 
         return init
 
-    def __call__(self, data: PyTree) -> PyTree:
+    def __call__(self, data: Any) -> Any:
         return data @ self.weights + self.biases
 
 
@@ -135,7 +139,7 @@ class Sequential(JaximalModule):
 
         return init
 
-    def __call__(self, data: PyTree, *args: dict[str, Any]) -> PyTree:
+    def __call__(self, data: Any, *args: dict[str, Any]) -> Any:
         assert len(args) == len(self.modules), (
             'Expected `self.modules` and `args` to have the same length '
             f'but got {len(self.modules)} and {len(args)}, respectively.'
@@ -147,9 +151,9 @@ class Sequential(JaximalModule):
 
 
 __all__ = [
-    'JaximalModule',
     'WeightInitialization',
+    'JaximalModule',
+    'Activation',
     'Linear',
     'Sequential',
-    'Activation',
 ]

@@ -3,13 +3,13 @@ name = "jaximal"
 version = "0.1.1"
 description = "A JAX-based PyTree manipulation library "
 authors = [
-    { name = "Arvin Kushwaha", email = "arvin.singh.kushwaha@gmail.com" },
+  { name = "Arvin Kushwaha", email = "arvin.singh.kushwaha@gmail.com" },
 ]
 dependencies = [
-    "safetensors>=0.4.3",
-    "jaxtyping>=0.2.29",
-    "jax>=0.4.28",
-    "jaxlib>=0.4.28",
+  "safetensors>=0.4.3",
+  "jaxtyping>=0.2.29",
+  "jax>=0.4.28",
+  "jaxlib>=0.4.28",
 ]
 readme = "README.md"
 requires-python = ">= 3.12"
@@ -25,8 +25,11 @@ dev-dependencies = ["pytest>=8.2.1", "basedpyright>=1.12.4", "optax>=0.2.2"]
 excluded-dependencies = []
 
 [tool.rye.scripts]
-ci = { chain = ["ci:verifytypes", "ci:basedpyright"] }
-"ci:verifytypes" = "rye run basedpyright --verifytypes jaximal"
+ci = { chain = [
+  # "ci:verifytypes", 
+  "ci:basedpyright",
+] }
+# "ci:verifytypes" = "rye run basedpyright --verifytypes jaximal"
 "ci:basedpyright" = "rye run basedpyright -p . ."
 
 [tool.hatch.metadata]

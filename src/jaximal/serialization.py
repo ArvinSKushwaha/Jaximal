@@ -22,10 +22,10 @@ from jaximal.core import Jaximal, Static
 
 
 class FnRegistry:
-    functions = {}
-    inv_functions = {}
+    functions: dict[Callable[..., Any], str] = {}
+    inv_functions: dict[str, Callable[..., Any]] = {}
 
-    def add(self, function: Callable[..., Any], name: str):
+    def add(self, function: Callable[..., Any], name: str) -> None:
         if function in self.functions or name in self.inv_functions:
             raise ValueError(
                 f'Function {function} with name {name} already in registry.'
@@ -41,7 +41,7 @@ class FnRegistry:
         return self.functions.get(function)
 
 
-global_fn_registry = FnRegistry()
+global_fn_registry: FnRegistry = FnRegistry()
 
 
 global_fn_registry.add(jax.numpy.sin, 'jax.numpy.sin')
@@ -53,7 +53,7 @@ global_fn_registry.add(jax.numpy.tanh, 'jax.numpy.tanh')
 
 
 class JSONEncoder(json.JSONEncoder):
-    def default(self, o: Any):
+    def default(self, o: Any) -> dict[str, Any] | None:
         if isinstance(o, Callable):
             if o_str := global_fn_registry.lookup_function(o):
                 return {
@@ -68,7 +68,7 @@ class JSONEncoder(json.JSONEncoder):
                 }
 
 
-def json_object_hook(dct: Any):
+def json_object_hook(dct: Any) -> Any:
     if 'callable' in dct:
         if 'jax_map' in dct:
             return global_fn_registry.lookup_name(dct['jax_map'])
