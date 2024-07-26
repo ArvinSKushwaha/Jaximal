@@ -67,8 +67,8 @@ class WeightInitialization(Enum):
 
 
 class JaximalModule(Jaximal, ABC):
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def init_state(
         cls, *args: Any, **kwargs: Any
     ) -> Callable[[PRNGKeyArray], Self]: ...
