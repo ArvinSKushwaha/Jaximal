@@ -25,7 +25,7 @@ class WeightInitialization(Enum):
         shape: tuple[int, ...],
         fan_in: int,
         fan_out: int,
-        dtype: np.dtype = np.float_,
+        dtype: np.dtype = np.float32,
     ) -> Float[Array, '*']:
         match self:
             case WeightInitialization.Zero:
