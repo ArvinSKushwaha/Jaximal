@@ -6,7 +6,8 @@ import jax
 import optax
 
 from jax import numpy as np
-from jaximal.core import Jaximal, Static, dedictify, dictify
+from jaximal.core import Jaximal, Static
+from jaximal.serialization import dedictify, dictify
 from jaximal.io import load_file, save_file
 from jaxtyping import Array, Float, PRNGKeyArray, Scalar
 

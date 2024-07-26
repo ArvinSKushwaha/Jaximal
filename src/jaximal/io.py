@@ -5,6 +5,8 @@ import safetensors.flax as safflax
 
 from jaxtyping import Array
 
+from jaximal.serialization import JSONEncoder, json_object_hook
+
 
 def save_file(
     filename: str,
@@ -16,7 +18,16 @@ def save_file(
     str]` called `meta`, uses `safetensors.flax.save_file` to save both to
     the given `filename`.
     """
-    safflax.save_file(data, filename, metadata)
+
+    if data:
+        safflax.save_file(data, filename, metadata)
+    else:
+        with open(filename, 'wb') as f:
+            metadata_ser = json.dumps(
+                {'__metadata__': metadata, '__no_data__': True}, cls=JSONEncoder
+            )
+            f.write(struct.pack('<Q', len(metadata_ser)))
+            f.write(metadata_ser.encode('utf-8'))
 
 
 def load_file(filename: str) -> tuple[dict[str, Array], dict[str, str]]:
@@ -25,12 +36,14 @@ def load_file(filename: str) -> tuple[dict[str, Array], dict[str, str]]:
     from the given `filename` and then manually retrieves the `dict[str, str]`
     metadata from the file.
     """
-    data = safflax.load_file(filename)
 
     with open(filename, 'rb') as f:
         header_len = struct.unpack('<Q', f.read(8))[0]
-        metadata = json.loads(f.read(header_len))['__metadata__']
+        json_data = f.read(header_len)
+        deser_data = json.loads(json_data, object_hook=json_object_hook)
+        metadata = deser_data['__metadata__']
 
+    data = {} if '__no_data__' in deser_data else safflax.load_file(filename)
     return data, metadata
 
 
@@ -52,7 +65,9 @@ def load(raw_data: bytes) -> tuple[dict[str, Array], dict[str, str]]:
     data = safflax.load(raw_data)
 
     header_len = struct.unpack('<Q', raw_data[:8])[0]
-    metadata = json.loads(raw_data[8 : 8 + header_len])['__metadata__']
+    metadata = json.loads(raw_data[8 : 8 + header_len], object_hook=json_object_hook)[
+        '__metadata__'
+    ]
 
     return data, metadata
 
